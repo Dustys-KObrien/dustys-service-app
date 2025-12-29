@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lance · RPH Entry</title>
+  <link rel="icon" href="icon.png" type="image/png" />
+  <meta name="theme-color" content="#0a2c57" />
+
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: saturate(40%) brightness(0.8);
+    }
+
+    .overlay {
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(2px);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo {
+      width: clamp(100px, 70vw, 220px);
+      cursor: pointer;
+    }
+
+    h1 {
+      color: #0a2c57;
+      margin: 1rem 0;
+    }
+
+    .section {
+      margin: 0.75rem 0;
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+      color: #0a2c57;
+    }
+
+    input {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    input[readonly] {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+
+    .time-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .time-row input {
+      flex: 1;
+      text-align: center;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 0.25rem;
+    }
+
+    .result-box {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0a2c57;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(6px);
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 320px;
+      line-height: 1.4;
+    }
+
+    .main-btn {
+      margin-top: 1.25rem;
+      background-color: #0a2c57;
+      color: white;
+      padding: 1rem 2.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .main-btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay">
+    <img src="logo.png" alt="Logo" class="logo"
+         onclick="window.location.href='rph.html'" />
+
+    <h1>Lance · RPH Entry</h1>
+
+    <!-- DATE (used only to derive Month) -->
+    <div class="section">
+      <label for="date">Date</label>
+      <input type="date" id="date" />
+    </div>
+
+    <!-- HOURS : MINUTES -->
+    <div class="section">
+      <label>Total Clocked Time</label>
+      <div class="time-row">
+        <input type="number" id="hours" min="0" placeholder="Hours" oninput="calculateRPH()" />
+        <input type="number" id="minutes" min="0" max="59" placeholder="Minutes" oninput="calculateRPH()" />
+      </div>
+      <div class="hint">Minutes must be between 0 and 59</div>
+    </div>
+
+    <!-- REVENUE -->
+    <div class="section">
+      <label for="revenue">Today’s Revenue ($)</label>
+      <input type="number" id="revenue" min="0" step="0.01" oninput="calculateRPH()" />
+    </div>
+
+    <!-- JOB COUNT -->
+    <div class="section">
+      <label for="jobs">Number of Jobs (1–20)</label>
+      <input type="number" id="jobs" min="1" max="20" oninput="calculateRPH()" />
+    </div>
+
+    <!-- RPH -->
+    <div class="section">
+      <label for="rph">Today’s RPH</label>
+      <input type="number" id="rph" readonly />
+    </div>
+
+    <div class="result-box" id="resultBox">
+      Enter date, time, revenue, and jobs
+    </div>
+
+    <button class="main-btn" id="submitBtn" onclick="submitRPH()" disabled>
+      Submit RPH
+    </button>
+  </div>
+
+  <script>
+    // Default date to today
+    document.getElementById('date').value =
+      new Date().toISOString().split('T')[0];
+
+    function calculateRPH() {
+      const hours = parseFloat(document.getElementById('hours').value) || 0;
+      const minutes = parseFloat(document.getElementById('minutes').value) || 0;
+      const revenue = parseFloat(document.getElementById('revenue').value);
+      const jobs = parseInt(document.getElementById('jobs').value);
+
+      const rphField = document.getElementById('rph');
+      const resultBox = document.getElementById('resultBox');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (minutes >= 60 || jobs < 1 || jobs > 20) {
+        resultBox.innerText = 'Check minutes (0–59) and jobs (1–20)';
+        rphField.value = '';
+        submitBtn.disabled = true;
+        return;
+      }
+
+      const decimalHours = hours + (minutes / 60);
+
+      if (decimalHours > 0 && revenue >= 0 && jobs) {
+        const rph = (revenue / decimalHours).toFixed(2);
+        rphField.value = rph;
+
+        resultBox.innerText =
+          `Time: ${hours}h ${minutes}m (${decimalHours.toFixed(2)} hrs)\n` +
+          `Revenue: $${revenue.toFixed(2)}\n` +
+          `Jobs: ${jobs}\n` +
+          `RPH: $${rph}`;
+
+        submitBtn.disabled = false;
+      } else {
+        rphField.value = '';
+        resultBox.innerText = 'Enter valid inputs';
+        submitBtn.disabled = true;
+      }
+    }
+
+    function submitRPH() {
+      const dateValue = document.getElementById('date').value;
+      const hours = parseFloat(document.getElementById('hours').value) || 0;
+      const minutes = parseFloat(document.getElementById('minutes').value) || 0;
+      const revenue = parseFloat(document.getElementById('revenue').value) || 0;
+      const jobs = parseInt(document.getElementById('jobs').value) || 0;
+      const rph = document.getElementById('rph').value;
+
+      const monthName = new Date(dateValue)
+        .toLocaleString('default', { month: 'long' });
+
+      const decimalHours = (hours + minutes / 60).toFixed(2);
+
+      const formBase =
+        "https://docs.google.com/forms/d/e/1FAIpQLScaTwIQxbj5Wo1xi1kQzCghmLSQgxjHceLFMlS0QWVwlSHlSw/viewform?usp=pp_url";
+
+      const finalUrl =
+        `${formBase}` +
+        `&entry.1440424132=${encodeURIComponent(monthName)}` +
+        `&entry.354532143=${encodeURIComponent(decimalHours)}` +
+        `&entry.2057174814=${encodeURIComponent(revenue.toFixed(2))}` +
+        `&entry.150694795=${encodeURIComponent(jobs)}` +
+        `&entry.531558774=${encodeURIComponent(rph)}`;
+
+      window.open(finalUrl, '_blank');
+    }
+  </script>
+</body>
+</html>

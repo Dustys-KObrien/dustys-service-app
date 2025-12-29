@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Job Split</title>
+  <link rel="icon" href="icon.png" type="image/png" />
+  <meta name="theme-color" content="#0a2c57" />
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: saturate(40%) brightness(0.8);
+    }
+
+    .overlay {
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(2px);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo {
+      width: clamp(100px, 70vw, 220px);
+      height: auto;
+      cursor: pointer;
+    }
+
+    h1 {
+      color: #0a2c57;
+      margin: 1rem 0;
+    }
+
+    select, input[type="number"] {
+      padding: 0.4rem;
+      margin: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .section {
+      margin-bottom: 1rem;
+    }
+
+    .split-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .main-btn {
+      background-color: #0a2c57;
+      color: white;
+      padding: 1rem 2.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      margin-top: 1rem;
+    }
+
+    .main-btn:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* 👇 NEW: readable glass result panel */
+    .result-box {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0a2c57;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(6px);
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 90%;
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <img src="logo.png" alt="Logo" class="logo" onclick="window.location.href='index.html'" />
+    <h1>Job Split</h1>
+
+    <div class="section">
+      <label>Number of Technicians: </label>
+      <select id="numTechs" onchange="renderTechFields()">
+        <option value="">Select</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <label>Job Revenue: $</label>
+      <input type="number" id="jobRevenue" placeholder="Enter amount" oninput="updateResults()" />
+    </div>
+
+    <div id="techInputs" class="split-container"></div>
+
+    <div class="result-box" id="resultBox">
+      Total: $0 | Percent: 0%
+    </div>
+
+    <button class="main-btn" id="submitBtn" onclick="submitToGoogleForm()" disabled>
+      Submit Totals
+    </button>
+  </div>
+
+  <script>
+    const techOptions = ["Jeremy", "Patrick", "Lance", "Creston", "Taylor"];
+    let techSelections = [];
+
+    function renderTechFields() {
+      const num = parseInt(document.getElementById('numTechs').value);
+      const container = document.getElementById('techInputs');
+      techSelections = Array(num).fill(null);
+      container.innerHTML = '';
+
+      for (let i = 0; i < num; i++) {
+        const select = document.createElement('select');
+        select.innerHTML =
+          `<option value="">Select Technician</option>` +
+          techOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+        select.setAttribute('data-index', i);
+        select.onchange = handleTechChange;
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.placeholder = '%';
+        input.min = 1;
+        input.max = 99;
+        input.oninput = updateResults;
+        input.setAttribute('data-input', i);
+
+        container.appendChild(select);
+        container.appendChild(input);
+      }
+
+      updateResults();
+    }
+
+    function handleTechChange(e) {
+      const index = parseInt(e.target.getAttribute('data-index'));
+      techSelections[index] = e.target.value;
+
+      const used = new Set(techSelections.filter(Boolean));
+      const selects = document.querySelectorAll('select[data-index]');
+
+      selects.forEach((sel, i) => {
+        const current = techSelections[i];
+        sel.innerHTML =
+          `<option value="">Select Technician</option>` +
+          techOptions.map(opt =>
+            !used.has(opt) || opt === current
+              ? `<option value="${opt}" ${opt === current ? 'selected' : ''}>${opt}</option>`
+              : ''
+          ).join('');
+      });
+
+      updateResults();
+    }
+
+    function updateResults() {
+      const jobRevenue = parseFloat(document.getElementById('jobRevenue').value) || 0;
+      const inputs = document.querySelectorAll('input[data-input]');
+      const selects = document.querySelectorAll('select[data-index]');
+      let totalPercent = 0;
+      let results = {};
+
+      inputs.forEach((input, i) => {
+        const percent = parseFloat(input.value) || 0;
+        const tech = selects[i].value;
+        if (tech) {
+          totalPercent += percent;
+          results[tech] = ((percent / 100) * jobRevenue).toFixed(2);
+        }
+      });
+
+      document.getElementById('submitBtn').disabled = totalPercent !== 100;
+
+      document.getElementById('resultBox').innerText =
+        `Total: $${jobRevenue.toFixed(2)} | Percent: ${totalPercent}%\n` +
+        Object.entries(results)
+          .map(([tech, val]) => `${tech}: $${val}`)
+          .join(' | ');
+    }
+
+    function submitToGoogleForm() {
+      const selects = document.querySelectorAll('select[data-index]');
+      const inputs = document.querySelectorAll('input[data-input]');
+      const revenue = parseFloat(document.getElementById('jobRevenue').value) || 0;
+
+      const formBase =
+        "https://docs.google.com/forms/d/e/1FAIpQLSc-o6cVgClLaLdeNKFb14Go4xt0rdngLsF7R3ZaoS4WgFkY7w/viewform?usp=pp_url";
+
+      const paramMap = {
+        "Jeremy": "entry.296115272",
+        "Patrick": "entry.2051976494",
+        "Lance": "entry.1365562587",
+        "Creston": "entry.333296204",
+        "Taylor": "entry.1651274262"
+      };
+
+      let params = [];
+      selects.forEach((sel, i) => {
+        const tech = sel.value;
+        const percent = parseFloat(inputs[i].value) || 0;
+        if (tech && percent) {
+          const total = ((percent / 100) * revenue).toFixed(2);
+          params.push(`${paramMap[tech]}=${total}`);
+        }
+      });
+
+      window.open(`${formBase}&${params.join("&")}`, '_blank');
+    }
+  </script>
+</body>
+</html>
