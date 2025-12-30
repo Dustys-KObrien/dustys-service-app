@@ -7,11 +7,7 @@
   <link rel="icon" href="icon.png" type="image/png" />
   <meta name="theme-color" content="#0a2c57" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body, html {
       height: 100%;
@@ -32,9 +28,7 @@
       padding: 2rem;
     }
 
-    a.logo-link {
-      display: block;
-    }
+    a.logo-link { display: block; }
 
     .logo {
       width: clamp(100px, 70vw, 220px);
@@ -42,17 +36,113 @@
       margin-bottom: 1rem;
       transition: transform 0.2s ease-in-out;
     }
-
-    .logo:hover {
-      transform: scale(1.05);
-      cursor: pointer;
-    }
+    .logo:hover { transform: scale(1.05); cursor: pointer; }
 
     h1 {
       font-size: 2.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
       color: #0a2c57;
       text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      padding: 1rem 1rem 1.1rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+      margin-bottom: 1.2rem;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      color: #0a2c57;
+      font-weight: 900;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .row > * { flex: 1; min-width: 160px; }
+
+    label {
+      display: block;
+      font-weight: 900;
+      color: #0a2c57;
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(10,44,87,0.18);
+      background: rgba(255,255,255,0.85);
+      outline: none;
+    }
+    select:focus {
+      border-color: rgba(10,44,87,0.45);
+      box-shadow: 0 0 0 3px rgba(10,44,87,0.12);
+    }
+
+    .mini-btn {
+      background: rgba(255,255,255,0.55);
+      color: #0a2c57;
+      border: 1px solid rgba(10,44,87,0.18);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      cursor: pointer;
+      font-weight: 900;
+      user-select: none;
+      transition: transform 0.15s ease-in-out, background 0.15s ease-in-out;
+      white-space: nowrap;
+      width: 100%;
+    }
+    .mini-btn:hover { background: rgba(255,255,255,0.75); transform: translateY(-1px); }
+    .mini-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.30);
+      box-shadow: inset 0 0 0 1px rgba(10,44,87,0.10);
+    }
+    .toggle input { transform: scale(1.15); accent-color: #0a2c57; }
+    .toggle span { color:#0a2c57; font-weight: 900; }
+
+    .status {
+      margin-top: 0.75rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.30);
+      box-shadow: inset 0 0 0 1px rgba(10,44,87,0.10);
+      color: #0a2c57;
+      font-weight: 900;
+      white-space: pre-line;
+    }
+
+    .button-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      width: 100%;
+      max-width: 720px;
     }
 
     .main-btn {
@@ -60,8 +150,6 @@
       color: white;
       padding: 1rem 2rem;
       font-size: 1.1rem;
-      margin: 0.5rem;
-      border: none;
       border-radius: 10px;
       box-shadow: 0 6px 15px rgba(0,0,0,0.2);
       text-transform: uppercase;
@@ -70,57 +158,214 @@
       transition: all 0.2s ease-in-out;
       width: 240px;
       text-align: center;
-      display: inline-block;
       text-decoration: none;
+      display: inline-block;
     }
+    .main-btn:hover { background-color: #09345f; transform: translateY(-2px); }
 
-    .main-btn:hover {
-      background-color: #09345f;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.25);
-    }
-
-    .main-btn:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
-    }
-
-    .button-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
+    .hidden { display: none !important; }
 
     @media (max-width: 450px) {
-      .logo {
-        width: 70vw;
-      }
-
-      .main-btn {
-        width: 80vw;
-      }
+      .logo { width: 70vw; }
+      .main-btn { width: 80vw; }
+      .card { max-width: 92vw; }
     }
   </style>
 </head>
 <body>
-  <div class="overlay">
-    <a href="index.html" class="logo-link">
-      <img src="logo.png" alt="Logo" class="logo" />
-    </a>
+<div class="overlay">
+  <a href="index.html" class="logo-link">
+    <img src="logo.png" class="logo" alt="Logo"/>
+  </a>
 
-    <h1>RPH Tracker</h1>
+  <h1>RPH Tracker</h1>
 
-    <div class="button-container">
-      <a href="jeremy.html" class="main-btn">Jeremy</a>
-      <a href="patrick.html" class="main-btn">Patrick</a>
-      <a href="lance.html" class="main-btn">Lance</a>
-      <a href="creston.html" class="main-btn">Creston</a>
-      <a href="taylor.html" class="main-btn">Taylor</a>
+  <div class="card">
+    <h2>Quick Start</h2>
 
-      <a href="job-split.html" class="main-btn">Job Split</a>
+    <div class="row">
+      <div>
+        <label for="techSelect">Who are you?</label>
+        <select id="techSelect">
+          <option value="">Select tech</option>
+          <option value="jeremy.html">Jeremy</option>
+          <option value="patrick.html">Patrick</option>
+          <option value="lance.html">Lance</option>
+          <option value="creston.html">Creston</option>
+          <option value="taylor.html">Taylor</option>
+        </select>
+      </div>
+
+      <div class="toggle">
+        <input type="checkbox" id="rememberToggle" />
+        <span>Remember on this device</span>
+      </div>
     </div>
+
+    <div class="row" style="margin-top:0.7rem;">
+      <button class="mini-btn" id="goBtn" disabled>Open My Page</button>
+      <button class="mini-btn" id="clearBtn">Clear Saved Tech</button>
+    </div>
+
+    <div class="status" id="statusBox">No tech saved yet.</div>
   </div>
+
+  <div class="button-container" id="buttonContainer">
+    <a href="jeremy.html" class="main-btn tech-btn">Jeremy</a>
+    <a href="patrick.html" class="main-btn tech-btn">Patrick</a>
+    <a href="lance.html" class="main-btn tech-btn">Lance</a>
+    <a href="creston.html" class="main-btn tech-btn">Creston</a>
+    <a href="taylor.html" class="main-btn tech-btn">Taylor</a>
+    <a href="job-split.html" class="main-btn" id="jobSplitBtn">Job Split</a>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = "dustys_rph_saved_tech";
+  const AUTO_REDIRECT_DELAY_MS = 100;
+
+  const techSelect = document.getElementById("techSelect");
+  const rememberToggle = document.getElementById("rememberToggle");
+  const goBtn = document.getElementById("goBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const statusBox = document.getElementById("statusBox");
+
+  const techButtons = document.querySelectorAll(".tech-btn");
+  const jobSplitBtn = document.getElementById("jobSplitBtn");
+
+  let redirectTimer = null;
+
+  function prettyNameFromHref(href) {
+    if (!href) return "";
+    const name = href.replace(".html", "");
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  function updateButtons(hasTech) {
+    techButtons.forEach(btn => btn.classList.toggle("hidden", hasTech));
+    jobSplitBtn.classList.remove("hidden");
+  }
+
+  function updateGoState() {
+    goBtn.disabled = (techSelect.value === "");
+  }
+
+  function shouldSkipAutoRedirect() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("switch") === "1";
+  }
+
+  function scheduleAutoRedirect(href) {
+    if (!href) return;
+    if (redirectTimer) clearTimeout(redirectTimer);
+
+    statusBox.textContent =
+      `Saved: ${prettyNameFromHref(href)}\n` +
+      `Auto-opening your page...`;
+
+    redirectTimer = setTimeout(() => {
+      window.location.href = href;
+    }, AUTO_REDIRECT_DELAY_MS);
+  }
+
+  function loadSaved() {
+    const savedHref = localStorage.getItem(STORAGE_KEY);
+    const skip = shouldSkipAutoRedirect();
+
+    if (savedHref) {
+      techSelect.value = savedHref;
+      rememberToggle.checked = true;
+      updateGoState();
+      updateButtons(true);
+
+      if (skip) {
+        // User came back intentionally (logo click). Do NOT auto-redirect.
+        statusBox.textContent =
+          `Saved: ${prettyNameFromHref(savedHref)}\n` +
+          `Auto-redirect paused (switch mode). Choose the correct tech, then tap "Open My Page".`;
+      } else {
+        scheduleAutoRedirect(savedHref);
+      }
+    } else {
+      rememberToggle.checked = false;
+      updateGoState();
+      updateButtons(false);
+      statusBox.textContent = "No tech saved yet.";
+    }
+  }
+
+  techSelect.addEventListener("change", () => {
+    const hasTech = techSelect.value !== "";
+    updateGoState();
+    updateButtons(hasTech);
+
+    if (redirectTimer) clearTimeout(redirectTimer);
+
+    if (!hasTech) {
+      statusBox.textContent = "No tech selected.";
+      if (rememberToggle.checked) localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
+    statusBox.textContent =
+      `Selected: ${prettyNameFromHref(techSelect.value)}\n` +
+      (rememberToggle.checked ? "Saved on this device." : "Turn on Remember to save this.");
+
+    if (rememberToggle.checked) {
+      localStorage.setItem(STORAGE_KEY, techSelect.value);
+
+      // Only auto-redirect if we are NOT in switch mode
+      if (!shouldSkipAutoRedirect()) {
+        scheduleAutoRedirect(techSelect.value);
+      }
+    }
+  });
+
+  rememberToggle.addEventListener("change", () => {
+    if (redirectTimer) clearTimeout(redirectTimer);
+
+    if (rememberToggle.checked) {
+      if (!techSelect.value) {
+        rememberToggle.checked = false;
+        statusBox.textContent = "Pick a tech first, then enable Remember.";
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY, techSelect.value);
+      updateButtons(true);
+
+      // Only auto-redirect if we are NOT in switch mode
+      if (!shouldSkipAutoRedirect()) {
+        scheduleAutoRedirect(techSelect.value);
+      } else {
+        statusBox.textContent =
+          `Saved: ${prettyNameFromHref(techSelect.value)}\n` +
+          `Auto-redirect paused (switch mode). Tap "Open My Page" when ready.`;
+      }
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+      statusBox.textContent = "Remember off. Nothing saved.";
+      updateButtons(techSelect.value !== "");
+    }
+  });
+
+  goBtn.addEventListener("click", () => {
+    if (!techSelect.value) return;
+    if (rememberToggle.checked) localStorage.setItem(STORAGE_KEY, techSelect.value);
+    window.location.href = techSelect.value;
+  });
+
+  clearBtn.addEventListener("click", () => {
+    if (redirectTimer) clearTimeout(redirectTimer);
+
+    localStorage.removeItem(STORAGE_KEY);
+    techSelect.value = "";
+    rememberToggle.checked = false;
+    updateGoState();
+    updateButtons(false);
+    statusBox.textContent = "Saved tech cleared. Select a tech to continue.";
+  });
+
+  loadSaved();
+</script>
 </body>
 </html>

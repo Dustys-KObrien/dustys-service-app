@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Run Time Calculator</title>
+  <link rel="icon" href="icon.png" type="image/png" />
+  <meta name="theme-color" content="#0a2c57" />
+  <style>
+    * { box-sizing: border-box; }
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: saturate(40%) brightness(0.8);
+    }
+    .overlay {
+      background-color: rgba(255, 255, 255, 0.20);
+      backdrop-filter: blur(2px);
+      min-height: 100vh;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    a.logo-link { display: block; }
+    .logo {
+      width: clamp(100px, 70vw, 220px);
+      height: auto;
+      cursor: pointer;
+      transition: transform 0.2s ease-in-out;
+    }
+    .logo:hover { transform: scale(1.03); }
+    h1 {
+      color: #0a2c57;
+      margin: 1rem 0 1.25rem;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    .card {
+      width: 100%;
+      max-width: 520px;
+      padding: 1.1rem 1.1rem 1.2rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+      position: relative;
+    }
+    .topbar { display:flex; justify-content:flex-end; margin-bottom:0.2rem; }
+    .section { margin: 0.85rem 0; display:flex; flex-direction:column; }
+    label { margin-bottom:0.35rem; font-weight:800; color:#0a2c57; font-size:0.95rem; }
+    input, select {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(10,44,87,0.18);
+      background: rgba(255,255,255,0.85);
+      outline: none;
+    }
+    input:focus, select:focus { border-color: rgba(10,44,87,0.45); box-shadow: 0 0 0 3px rgba(10,44,87,0.12); }
+    input[readonly] { background: rgba(240,240,240,0.92); font-weight:900; color:#0a2c57; }
+    .row { display:flex; gap:0.6rem; align-items:flex-end; }
+    .row > * { flex: 1; }
+
+    .mini-btn {
+      background: rgba(255,255,255,0.55);
+      color: #0a2c57;
+      border: 1px solid rgba(10,44,87,0.18);
+      border-radius: 10px;
+      padding: 0.55rem 0.75rem;
+      cursor: pointer;
+      font-weight: 900;
+      user-select: none;
+      transition: transform 0.15s ease-in-out, background 0.15s ease-in-out;
+      white-space: nowrap;
+    }
+    .mini-btn:hover { background: rgba(255,255,255,0.75); transform: translateY(-1px); }
+    .mini-btn.active { background: rgba(10,44,87,0.85); color:#fff; border-color: rgba(10,44,87,0.85); }
+
+    .mini-btn.small {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.88rem;
+      border-radius: 9px;
+    }
+
+    .temp-wrap {
+      display:none; margin-top:0.75rem; padding:0.8rem; border-radius:12px;
+      background: rgba(255,255,255,0.30);
+      box-shadow: inset 0 0 0 1px rgba(10,44,87,0.10);
+    }
+    .temp-wrap.show { display:block; }
+    .temp-header { display:flex; justify-content:space-between; font-weight:900; color:#0a2c57; margin-bottom:0.35rem; }
+    input[type="range"] { width:100%; accent-color:#0a2c57; }
+
+    .advanced-only { display:none; }
+    .advanced-only.show { display:block; }
+
+    .custompr-row { display:none; margin-top:0.6rem; }
+    .custompr-row.show { display:block; }
+
+    .result-box {
+      margin-top:1rem;
+      padding: 0.95rem 0.95rem 0.95rem;
+      border-radius:12px;
+      background: rgba(255,255,255,0.30);
+      font-weight:900; color:#0a2c57;
+      box-shadow: inset 0 0 0 1px rgba(10,44,87,0.10);
+      overflow: hidden;
+    }
+    .result-pre { white-space: pre-line; }
+    .error { color:#7a0012; }
+
+    .shade-table {
+      margin-top: 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid rgba(10,44,87,0.10);
+    }
+    .shade-row {
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.22);
+    }
+    .shade-left { display:flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+    .shade-title { font-weight: 950; color: #0a2c57; line-height: 1.15; }
+    .shade-min { font-weight: 900; opacity: 0.9; line-height: 1.1; }
+    .shade-row.selected {
+      background: rgba(10,44,87,0.14);
+      box-shadow: inset 0 0 0 1px rgba(10,44,87,0.18);
+    }
+    .muted { opacity: 0.85; font-weight: 850; }
+
+    /* NEW: Final result banner */
+    .final-banner {
+      margin-top: 0.85rem;
+      padding: 0.85rem 0.9rem;
+      border-radius: 12px;
+      background: rgba(10,44,87,0.88);
+      color: #fff;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.20);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .final-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.9;
+      font-weight: 900;
+    }
+    .final-value {
+      font-size: 1.65rem;
+      font-weight: 950;
+      line-height: 1.1;
+    }
+    .final-sub {
+      font-size: 0.9rem;
+      font-weight: 800;
+      opacity: 0.92;
+    }
+
+    .ghost-btn {
+      margin-top:1rem; width:100%;
+      background: rgba(255,255,255,0.55);
+      color:#0a2c57;
+      padding:0.9rem;
+      border-radius:12px;
+      font-weight:900;
+      border:1px solid rgba(10,44,87,0.18);
+      cursor:pointer;
+      transition: transform 0.15s ease-in-out, background 0.15s ease-in-out;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .ghost-btn:hover { background: rgba(255,255,255,0.75); transform: translateY(-1px); }
+
+    .fineprint { font-size:0.78rem; color: rgba(0,0,0,0.55); margin-top:0.75rem; line-height:1.35; }
+  </style>
+</head>
+<body>
+<div class="overlay">
+  <a href="index.html" class="logo-link">
+    <img src="logo.png" class="logo" alt="Logo"/>
+  </a>
+  <h1>Run Time Calculator</h1>
+
+  <div class="card">
+    <div class="topbar">
+      <button id="advancedBtn" class="mini-btn" type="button">Advanced</button>
+    </div>
+
+    <div class="section">
+      <div class="row">
+        <div>
+          <label for="et">Weekly ET</label>
+          <input type="number" id="et" min="0.05" max="2.5" step="0.01" placeholder="0.05 – 2.50" />
+        </div>
+        <button id="tempBtn" class="mini-btn" type="button">Temp Slider</button>
+      </div>
+      <div id="tempWrap" class="temp-wrap">
+        <div class="temp-header">
+          <span>Temperature</span>
+          <span id="tempValue">75°F</span>
+        </div>
+        <input type="range" id="tempSlider" min="55" max="105" value="75" />
+      </div>
+    </div>
+
+    <div class="section">
+      <label for="prType">Head Type / Precipitation Rate</label>
+      <div class="row">
+        <select id="prType">
+          <option value="">Select</option>
+          <option value="0.4">MPs (0.4)</option>
+          <option value="1.2">Sprays (1.2)</option>
+          <option value="0.6">Rotors 2GPM (0.6)</option>
+        </select>
+        <button id="customPrBtn" class="mini-btn advanced-only" type="button">Custom PR</button>
+      </div>
+      <div id="customPrRow" class="custompr-row">
+        <input type="number" id="customPr" min="0.01" max="10" step="0.01" placeholder="Custom PR (0.01 – 10.00)" />
+      </div>
+    </div>
+
+    <div class="section advanced-only">
+      <label for="soilType">Soil Type</label>
+      <select id="soilType">
+        <option value="">Select</option>
+        <option value="Clay">Clay</option>
+        <option value="Loam">Loam</option>
+        <option value="Sand">Sand</option>
+        <option value="Silt">Silt</option>
+        <option value="Clay mix">Clay mix</option>
+        <option value="Sand mix">Sand mix</option>
+        <option value="Loam mix">Loam mix</option>
+        <option value="Silt mix">Silt mix</option>
+      </select>
+    </div>
+
+    <div class="section advanced-only">
+      <label for="slope">Slope</label>
+      <select id="slope">
+        <option value="">Select</option>
+        <option value="Flat">Flat</option>
+        <option value="Moderate">Moderate</option>
+        <option value="Steep">Steep</option>
+      </select>
+    </div>
+
+    <div class="section advanced-only">
+      <div class="row">
+        <div style="flex:1;">
+          <label style="margin-bottom:0.35rem;">Cycle / Soak Mode</label>
+          <button id="cycleBtn" class="mini-btn" type="button">Off</button>
+        </div>
+        <div style="flex:1;">
+          <label for="maxCycles">Max cycles (optional)</label>
+          <input type="number" id="maxCycles" min="1" max="10" step="1" placeholder="Auto" disabled />
+        </div>
+      </div>
+      <div class="fineprint" style="margin-top:0.35rem;">
+        Auto cycles are based on soil + slope and capped at 10. If you set Max cycles, minutes per cycle will auto-adjust to fit.
+      </div>
+    </div>
+
+    <div class="section">
+      <label for="days">Days Programmed</label>
+      <select id="days">
+        <option value="">Select</option>
+        <option value="7">Everyday (7)</option>
+        <option value="3.5">Every Other Day / Odd / Even (3.5)</option>
+        <option value="2.33">Every 3 Days (2.33)</option>
+        <option value="1.75">Every 4 Days (1.75)</option>
+      </select>
+    </div>
+
+    <div id="results" class="result-box">
+      <div class="result-pre">Enter values to calculate runtime.</div>
+    </div>
+
+    <button class="ghost-btn" type="button" id="resetBtn">Reset</button>
+
+    <div class="fineprint">
+      Times are rounded to whole minutes. Basic mode shows shade as a reference table only. Advanced mode lets you select shade and applies it to the equation (and cycle/soak).
+    </div>
+  </div>
+</div>
+
+<script>
+  const etEl = document.getElementById("et");
+  const prTypeEl = document.getElementById("prType");
+  const daysEl = document.getElementById("days");
+  const resultsEl = document.getElementById("results");
+
+  const tempBtn = document.getElementById("tempBtn");
+  const tempWrap = document.getElementById("tempWrap");
+  const tempSlider = document.getElementById("tempSlider");
+  const tempValue = document.getElementById("tempValue");
+
+  const advancedBtn = document.getElementById("advancedBtn");
+  const advancedOnlyEls = document.querySelectorAll(".advanced-only");
+
+  const customPrBtn = document.getElementById("customPrBtn");
+  const customPrRow = document.getElementById("customPrRow");
+  const customPrEl = document.getElementById("customPr");
+
+  const soilTypeEl = document.getElementById("soilType");
+  const slopeEl = document.getElementById("slope");
+
+  const cycleBtn = document.getElementById("cycleBtn");
+  const maxCyclesEl = document.getElementById("maxCycles");
+
+  const resetBtn = document.getElementById("resetBtn");
+
+  let tempOn = false;
+  let advancedOn = false;
+  let customPrOn = false;
+  let cycleOn = false;
+
+  const MAX_CYCLES = 10;
+
+  const shadeOptions = [
+    { key: "0",  label: "0% shade",  factor: 1.00 },
+    { key: "25", label: "25% shade", factor: 0.80 },
+    { key: "50", label: "50% shade", factor: 0.60 },
+    { key: "75", label: "75% shade", factor: 0.50 },
+    { key: "90", label: "90% shade", factor: 0.30 }
+  ];
+  let selectedShadeKey = "0"; // used only in Advanced mode
+
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function setResultHtml(html, isError=false) {
+    resultsEl.classList.toggle("error", isError);
+    resultsEl.innerHTML = html;
+  }
+
+  function setResultText(text, isError=false) {
+    setResultHtml(`<div class="result-pre">${escapeHtml(text).replace(/\n/g, "<br>")}</div>`, isError);
+  }
+
+  function etFromTempF(t) {
+    if (t >= 100) return 2.5;
+    if (t >= 95) return 2.2;
+    if (t >= 90) return 2.0;
+    if (t >= 85) return 1.8;
+    if (t >= 80) return 1.6;
+    if (t >= 75) return 1.4;
+    const ratio = (t - 55) / 20;
+    const val = 1.0 + ratio * 0.4;
+    return Number(val.toFixed(2));
+  }
+
+  function onTempChange() {
+    const t = Number(tempSlider.value);
+    tempValue.textContent = (t >= 100) ? "100°F+" : `${t}°F`;
+    if (tempOn) etEl.value = etFromTempF(t).toFixed(2);
+    calculate();
+  }
+
+  function getEffectivePr() {
+    if (advancedOn && customPrOn && customPrEl.value !== "") return Number(customPrEl.value);
+    return Number(prTypeEl.value);
+  }
+
+  const soilModel = {
+    "Sand":     { storageIndex: 0.55 },
+    "Loam":     { storageIndex: 1.00 },
+    "Silt":     { storageIndex: 1.10 },
+    "Clay":     { storageIndex: 1.15 },
+    "Sand mix": { storageIndex: 0.78 },
+    "Loam mix": { storageIndex: 1.07 },
+    "Silt mix": { storageIndex: 1.05 },
+    "Clay mix": { storageIndex: 1.08 }
+  };
+
+  function soilFactor(soilName) {
+    const s = soilModel[soilName];
+    if (!s) return { factor: 1.0, pct: 0 };
+    let raw = 1 / s.storageIndex;
+    raw = Math.min(1.35, Math.max(0.80, raw));
+    const pct = Math.round((raw - 1) * 100);
+    return { factor: raw, pct };
+  }
+
+  function recommendedMaxMinutesPerCycle(soilName, slope) {
+    const baseMap = {
+      "Clay": 5,
+      "Clay mix": 6,
+      "Silt": 6,
+      "Silt mix": 7,
+      "Loam mix": 8,
+      "Loam": 10,
+      "Sand mix": 10,
+      "Sand": 12
+    };
+    let max = baseMap[soilName] ?? 8;
+    if (slope === "Flat") max += 2;
+    if (slope === "Steep") max -= 2;
+    return Math.max(3, Math.min(15, max));
+  }
+
+  function soakMinutes(soilName, slope) {
+    let soak = 20;
+    if ((soilName || "").includes("Clay")) soak = 35;
+    else if ((soilName || "").includes("Silt")) soak = 30;
+    else if ((soilName || "").includes("Sand")) soak = 10;
+    else soak = 20;
+
+    if (slope === "Flat") soak -= 5;
+    if (slope === "Moderate") soak += 5;
+    if (slope === "Steep") soak += 10;
+    return Math.max(10, Math.min(60, soak));
+  }
+
+  function buildCyclePlan(totalMinutes, soilName, slope, maxCyclesOverride) {
+    const recMaxMin = recommendedMaxMinutesPerCycle(soilName || "Loam", slope || "Flat");
+    const recCyclesRaw = Math.max(1, Math.ceil(totalMinutes / recMaxMin));
+    const recCyclesCapped = Math.min(MAX_CYCLES, recCyclesRaw);
+
+    let cycles = recCyclesCapped;
+    let mode = "auto";
+    if (Number.isFinite(maxCyclesOverride) && maxCyclesOverride > 0) {
+      cycles = Math.max(1, Math.min(MAX_CYCLES, Math.round(maxCyclesOverride)));
+      mode = "manual";
+    }
+
+    const base = Math.floor(totalMinutes / cycles);
+    let remainder = totalMinutes % cycles;
+
+    const perCycle = [];
+    for (let i = 0; i < cycles; i++) {
+      perCycle.push(base + (remainder > 0 ? 1 : 0));
+      if (remainder > 0) remainder--;
+    }
+
+    const maxPerCycleActual = Math.max(...perCycle);
+    const soak = soakMinutes(soilName || "Loam", slope || "Flat");
+
+    const cappedWarning = (mode === "auto" && recCyclesRaw > MAX_CYCLES);
+    const userBelowRecommended = (mode === "manual" && cycles < recCyclesCapped);
+    const exceedsRecommendation = (maxPerCycleActual > recMaxMin);
+
+    return {
+      cycles, perCycle, soak,
+      recMaxMin, recCyclesRaw, recCyclesCapped,
+      cappedWarning, userBelowRecommended, exceedsRecommendation,
+      maxPerCycleActual, mode
+    };
+  }
+
+  function getSelectedShade() {
+    return shadeOptions.find(s => s.key === selectedShadeKey) || shadeOptions[0];
+  }
+
+  function renderFinalBanner(title, minutes, subline="") {
+    const safeTitle = escapeHtml(title);
+    const safeSub = escapeHtml(subline);
+    return `
+      <div class="final-banner">
+        <div class="final-title">${safeTitle}</div>
+        <div class="final-value">${minutes} min</div>
+        ${subline ? `<div class="final-sub">${safeSub}</div>` : ``}
+      </div>
+    `;
+  }
+
+  function renderShadeStatic(finalMinutes) {
+    const rows = shadeOptions.map(opt => {
+      const mins = Math.round(finalMinutes * opt.factor);
+      return `
+        <div class="shade-row">
+          <div class="shade-left">
+            <div class="shade-title">${opt.label}</div>
+            <div class="shade-min">${mins} min</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="shade-table">
+        <div class="muted">Shade (reference only)</div>
+        ${rows}
+      </div>
+    `;
+  }
+
+  function renderShadeSelector(finalMinutesUnshaded) {
+    const sel = getSelectedShade();
+    const rows = shadeOptions.map(opt => {
+      const mins = Math.round(finalMinutesUnshaded * opt.factor);
+      const isSel = opt.key === sel.key;
+      const btnText = isSel ? "Selected" : "Select";
+      return `
+        <div class="shade-row ${isSel ? "selected" : ""}">
+          <div class="shade-left">
+            <div class="shade-title">${opt.label}</div>
+            <div class="shade-min">${mins} min</div>
+          </div>
+          <button type="button" class="mini-btn small ${isSel ? "active" : ""}" data-shade="${opt.key}">
+            ${btnText}
+          </button>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="shade-table">
+        <div class="muted">Shade Selection (applies to advanced math)</div>
+        ${rows}
+      </div>
+    `;
+  }
+
+  function calculate() {
+    const et = Number(etEl.value);
+    const pr = getEffectivePr();
+    const days = Number(daysEl.value);
+
+    const hasPr = prTypeEl.value !== "" || (advancedOn && customPrOn && customPrEl.value !== "");
+    if (!etEl.value || !daysEl.value || !hasPr) {
+      setResultText("Enter values to calculate runtime.");
+      return;
+    }
+    if (!Number.isFinite(et) || et < 0.05 || et > 2.5) {
+      setResultText("Weekly ET must be between 0.05 and 2.50.", true);
+      return;
+    }
+    if (!Number.isFinite(pr) || pr <= 0) {
+      setResultText("Select a valid PR (or enter a valid Custom PR).", true);
+      return;
+    }
+    if (!Number.isFinite(days) || days <= 0) {
+      setResultText("Select a valid days option.", true);
+      return;
+    }
+
+    const baseMin = Math.round((et / pr) * 60 / days);
+
+    let finalMin = baseMin;
+    let soilLine = "Soil Adjust: (off)";
+    const soilName = (advancedOn ? soilTypeEl.value : "") || "";
+    const slope = (advancedOn ? slopeEl.value : "") || "";
+
+    if (advancedOn && soilName) {
+      const { factor, pct } = soilFactor(soilName);
+      finalMin = Math.round(baseMin * factor);
+      const sign = pct > 0 ? "+" : "";
+      soilLine = `Soil: ${soilName} | Adjust: ${sign}${pct}%`;
+    } else if (advancedOn && !soilName) {
+      soilLine = "Soil Adjust: (select soil type)";
+    }
+
+    const prLabel = (advancedOn && customPrOn && customPrEl.value !== "")
+      ? `PR: ${Number(customPrEl.value).toFixed(2)} (custom)`
+      : `PR: ${Number(prTypeEl.value).toFixed(2)} (head)`;
+
+    // BASIC mode: shade is reference only, final banner shows Final Run Time
+    if (!advancedOn) {
+      const basicHeader =
+        `<div class="result-pre">` +
+        `Base Run Time: ${baseMin} min<br>` +
+        `Final Run Time: ${finalMin} min<br><br>` +
+        `Weekly ET: ${et.toFixed(2)} | ${escapeHtml(prLabel)} | Days: ${days}` +
+        `</div>`;
+
+      const banner = renderFinalBanner("Final Run Time", finalMin, "Use this value to set the controller.");
+      setResultHtml(basicHeader + renderShadeStatic(finalMin) + banner);
+      return;
+    }
+
+    // ADVANCED mode: shade selection applies to equation, final banner shows Shade-Adjusted Final
+    const shade = getSelectedShade();
+    const shadedFinalMin = Math.round(finalMin * shade.factor);
+    const shadeLine = `Shade Applied: ${shade.label} (${Math.round(shade.factor * 100)}%)`;
+
+    let cycleBlock = "";
+    let warnings = "";
+    let finalSub = `Soil-adjusted then shade-applied`;
+
+    if (cycleOn) {
+      const override = maxCyclesEl.value ? Number(maxCyclesEl.value) : NaN;
+      if (maxCyclesEl.value) {
+        if (!Number.isFinite(override) || override < 1 || override > 10) {
+          setResultText("Max cycles must be between 1 and 10.", true);
+          return;
+        }
+      }
+
+      const plan = buildCyclePlan(shadedFinalMin, soilName || "Loam", slope || "Flat", override);
+      const perCycleText = plan.perCycle.map((m, i) => `Cycle ${i+1}: ${m} min`).join("<br>");
+
+      if (plan.cappedWarning) {
+        warnings += `<br>WARNING: Recommended is ${plan.recCyclesRaw} cycles, but auto is capped at ${MAX_CYCLES}.`;
+      }
+      if (plan.userBelowRecommended) {
+        warnings += `<br>WARNING: Recommended is ${plan.recCyclesCapped} cycles for this soil+slope, but you set ${plan.cycles}. Cycles will run longer.`;
+      }
+      if (plan.exceedsRecommendation) {
+        warnings += `<br>WARNING: Longest cycle is ${plan.maxPerCycleActual} min (recommended max ~${plan.recMaxMin} min). Consider increasing Max cycles.`;
+      }
+
+      const avg = Math.round(shadedFinalMin / plan.cycles);
+      finalSub = `Cycle/Soak: ${plan.cycles} cycles (~${avg} min/cycle), soak ${plan.soak} min`;
+
+      cycleBlock =
+        `<br><br><span class="muted">Cycle / Soak Plan (uses Shade-Adjusted Final)</span><br>` +
+        `Slope: ${escapeHtml(slope || "Flat")}<br>` +
+        `Recommended max min/cycle: ~${plan.recMaxMin}<br>` +
+        `Cycles: ${plan.cycles}${plan.mode === "manual" ? " (manual)" : " (auto)"}<br>` +
+        `Soak between cycles: ${plan.soak} min<br>` +
+        `${perCycleText}` +
+        (warnings ? `<br>${warnings.replace(/^<br>/, "")}` : "");
+    }
+
+    const advHeader =
+      `<div class="result-pre">` +
+      `Base Run Time: ${baseMin} min<br>` +
+      `Final Run Time (soil-adjusted): ${finalMin} min<br>` +
+      `Shade-Adjusted Final: ${shadedFinalMin} min<br><br>` +
+      `${escapeHtml(soilLine)}<br>` +
+      `${escapeHtml(shadeLine)}<br>` +
+      `Weekly ET: ${et.toFixed(2)} | ${escapeHtml(prLabel)} | Days: ${days}` +
+      `${cycleBlock}` +
+      `</div>`;
+
+    const banner = renderFinalBanner("Final Setting", shadedFinalMin, finalSub);
+    setResultHtml(advHeader + renderShadeSelector(finalMin) + banner);
+  }
+
+  function resetAll() {
+    etEl.value = "";
+    prTypeEl.value = "";
+    daysEl.value = "";
+    soilTypeEl.value = "";
+    slopeEl.value = "";
+
+    tempOn = false;
+    tempBtn.classList.remove("active");
+    tempWrap.classList.remove("show");
+    etEl.readOnly = false;
+    tempSlider.value = 75;
+    tempValue.textContent = "75°F";
+
+    advancedOn = false;
+    advancedBtn.classList.remove("active");
+    advancedOnlyEls.forEach(el => el.classList.remove("show"));
+
+    customPrOn = false;
+    customPrBtn.classList.remove("active");
+    customPrRow.classList.remove("show");
+    customPrEl.value = "";
+
+    cycleOn = false;
+    cycleBtn.classList.remove("active");
+    cycleBtn.textContent = "Off";
+    maxCyclesEl.value = "";
+    maxCyclesEl.disabled = true;
+
+    selectedShadeKey = "0";
+    setResultText("Enter values to calculate runtime.");
+  }
+
+  // Shade selector click handling (only visible in Advanced mode)
+  resultsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-shade]");
+    if (!btn) return;
+    selectedShadeKey = btn.getAttribute("data-shade") || "0";
+    calculate();
+  });
+
+  tempBtn.addEventListener("click", () => {
+    tempOn = !tempOn;
+    tempBtn.classList.toggle("active", tempOn);
+    tempWrap.classList.toggle("show", tempOn);
+    etEl.readOnly = tempOn;
+    if (tempOn) onTempChange();
+    calculate();
+  });
+
+  tempSlider.addEventListener("input", onTempChange);
+
+  advancedBtn.addEventListener("click", () => {
+    advancedOn = !advancedOn;
+    advancedBtn.classList.toggle("active", advancedOn);
+    advancedOnlyEls.forEach(el => el.classList.toggle("show", advancedOn));
+
+    if (!advancedOn) {
+      soilTypeEl.value = "";
+      slopeEl.value = "";
+      customPrOn = false;
+      customPrBtn.classList.remove("active");
+      customPrRow.classList.remove("show");
+      customPrEl.value = "";
+      cycleOn = false;
+      cycleBtn.classList.remove("active");
+      cycleBtn.textContent = "Off";
+      maxCyclesEl.value = "";
+      maxCyclesEl.disabled = true;
+    }
+    calculate();
+  });
+
+  customPrBtn.addEventListener("click", () => {
+    if (!advancedOn) return;
+    customPrOn = !customPrOn;
+    customPrBtn.classList.toggle("active", customPrOn);
+    customPrRow.classList.toggle("show", customPrOn);
+    if (!customPrOn) customPrEl.value = "";
+    calculate();
+  });
+
+  cycleBtn.addEventListener("click", () => {
+    if (!advancedOn) return;
+    cycleOn = !cycleOn;
+    cycleBtn.classList.toggle("active", cycleOn);
+    cycleBtn.textContent = cycleOn ? "On" : "Off";
+    maxCyclesEl.disabled = !cycleOn;
+    if (!cycleOn) maxCyclesEl.value = "";
+    calculate();
+  });
+
+  resetBtn.addEventListener("click", resetAll);
+
+  ["input", "change"].forEach(evt => {
+    etEl.addEventListener(evt, calculate);
+    prTypeEl.addEventListener(evt, calculate);
+    daysEl.addEventListener(evt, calculate);
+    soilTypeEl.addEventListener(evt, calculate);
+    slopeEl.addEventListener(evt, calculate);
+    customPrEl.addEventListener(evt, calculate);
+    maxCyclesEl.addEventListener(evt, calculate);
+  });
+
+  calculate();
+</script>
+</body>
+</html>
